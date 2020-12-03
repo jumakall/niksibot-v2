@@ -1,0 +1,3 @@
+# NiksiBot v2
+
+After long usage of the original NiksiBot, we have understood how to make NiksiBot even better. There has been many times when we have wished that one sound could be in more than one place at a time, so that is why NiksiBot v2 will be utilizing labels to organize sounds. Of course there will be other improvements too, like improved startup speed and reduced memory footprint. At the same time statistics feature will be completely removed since we never felt like that is important for NiksiBot. _(since the original NiksiBot was a fork of the Discord's Airhorn Bot, the code for statistics was already there, but the feature didn't feel really important and was never completed)_
