@@ -39,7 +39,7 @@ func onMessageReceive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	guild, _ := s.State.Guild(channel.GuildID)
-	if guild != nil {
+	if guild == nil {
 		log.WithFields(log.Fields{
 			"guild":   channel.GuildID,
 			"channel": channel.ID,
