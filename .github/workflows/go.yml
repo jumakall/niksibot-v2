@@ -30,4 +30,10 @@ jobs:
         fi
 
     - name: Build
-      run: go build -v ./...
+      run: go build -o build/bot -v .
+      
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: niksibot
+        path: build/bot
