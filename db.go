@@ -79,8 +79,9 @@ func createDB(file string) bool {
 	defer db.Close()
 
 	createTable(db, "meta", "key text not null primary key, value text not null")
-	createTable(db, "sounds", "id integer not null primary key, file text")
-	createTable(db, "tags", "id integer not null primary key, name text")
+	createTable(db, "tags", "name text not null primary key")
+	createTable(db, "sounds", "file text not null primary key")
+	createTable(db, "applied_tags", "sound text not null, tag text not null, primary key (sound, tag), foreign key(sound) references sounds(id), foreign key(tag) references tags(name)")
 
 	writeMeta(db, "DatabaseSchemaVersion", strconv.Itoa(DatabaseSchemaVersion))
 
