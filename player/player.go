@@ -94,6 +94,7 @@ func (p *Player) backgroundPlayer() {
 		}
 	}
 
+	p.NowPlaying = nil
 	if p.DisconnectPending {
 		p.disconnect()
 	}
@@ -160,6 +161,10 @@ func (p *Player) Enqueue(play *Play) {
 }
 
 func (p *Player) Skip() {
+	if p.NowPlaying == nil {
+		return
+	}
+
 	log.WithFields(log.Fields{
 		"guild":   p.NowPlaying.Guild.Name,
 		"channel": p.NowPlaying.Channel.Name,
