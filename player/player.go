@@ -20,8 +20,13 @@ type Player struct {
 	// VC is reference to currently active voice connection
 	VC *discordgo.VoiceConnection
 
-	// Queue is the current play queue
-	Queue      *list.List
+	// Queue is the current PlaySet queue
+	Queue *list.List
+
+	// CurrentPlaySet is the PlaySet currently being played
+	CurrentPlaySet *PlaySet
+
+	// NowPlaying is the currently playing Play
 	NowPlaying *Play
 
 	playerServiceLock    *sync.Mutex
@@ -67,30 +72,11 @@ func (p *Player) backgroundPlayer() {
 	for p.Queue.Len() > 0 && !p.DisconnectPending {
 		front := p.Queue.Front()
 		p.Queue.Remove(front)
-		p.NowPlaying = front.Value.(*Play)
+		p.CurrentPlaySet = front.Value.(*PlaySet)
 
-		vc, err := p.connect(p.NowPlaying.Channel)
-		if err != nil {
-			break
-		}
-
-		log.WithFields(log.Fields{
-			"guild":   p.NowPlaying.Guild.Name,
-			"channel": p.NowPlaying.Channel.Name,
-			"user":    p.NowPlaying.User.Username + "#" + p.NowPlaying.User.Discriminator,
-			"sound":   p.NowPlaying.Sound.File,
-			"forced":  p.NowPlaying.Forced,
-		}).Info("Playing sound")
-
-		err = p.NowPlaying.PlayToVoiceChannel(vc)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"guild":   p.NowPlaying.Guild.Name,
-				"channel": p.NowPlaying.Channel.Name,
-				"user":    p.NowPlaying.User.Username + "#" + p.NowPlaying.User.Discriminator,
-				"sound":   p.NowPlaying.Sound.File,
-				"err":     err,
-			}).Warning("Error while playing sound")
+		for !p.CurrentPlaySet.IsExhausted() && !p.DisconnectPending {
+			p.NowPlaying = p.CurrentPlaySet.Take()
+			p.playSound(p.NowPlaying)
 		}
 	}
 
@@ -102,6 +88,32 @@ func (p *Player) backgroundPlayer() {
 	p.playerServiceLock.Lock()
 	p.playerServiceRunning = false
 	p.playerServiceLock.Unlock()
+}
+
+func (p *Player) playSound(play *Play) {
+	vc, err := p.connect(play.Channel)
+	if err != nil {
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"guild":   play.Guild.Name,
+		"channel": play.Channel.Name,
+		"user":    play.User.Username + "#" + play.User.Discriminator,
+		"sound":   play.Sound.File,
+		"forced":  play.Forced,
+	}).Info("Playing sound")
+
+	err = p.NowPlaying.PlayToVoiceChannel(vc)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"guild":   play.Guild.Name,
+			"channel": play.Channel.Name,
+			"user":    play.User.Username + "#" + play.User.Discriminator,
+			"sound":   play.Sound.File,
+			"err":     err,
+		}).Warning("Error while playing sound")
+	}
 }
 
 func (p *Player) connect(voiceChannel *discordgo.Channel) (*discordgo.VoiceConnection, error) {
@@ -141,23 +153,33 @@ func (p *Player) connect(voiceChannel *discordgo.Channel) (*discordgo.VoiceConne
 	return p.VC, nil
 }
 
-func (p *Player) Enqueue(play *Play) {
-	if play == nil {
+func (p *Player) Enqueue(playSet *PlaySet) {
+	if playSet == nil {
 		log.WithFields(log.Fields{
 			"guild": p.Guild.Name,
 		}).Warning("Cannot queue null")
 		return
 	}
 
-	log.WithFields(log.Fields{
-		"guild":   p.Guild.Name,
-		"channel": play.Channel.Name,
-		"user":    play.User.Username + "#" + play.User.Discriminator,
-		"file":    play.Sound.File,
-		"forced":  play.Forced,
-	}).Info("Queuing play")
+	logger := log.WithFields(log.Fields{
+		"guild": p.Guild.Name,
+	})
 
-	p.Queue.PushBack(play)
+	if playSet.Length() == 1 {
+		play := playSet.Peek()
+		logger.WithFields(log.Fields{
+			"channel": play.Channel.Name,
+			"user":    play.User.Username + "#" + play.User.Discriminator,
+			"file":    play.Sound.File,
+			"forced":  play.Forced,
+		}).Info("Queuing play")
+	} else {
+		logger.WithFields(log.Fields{
+			"count": playSet.Length(),
+		}).Info("Queuing multiple plays")
+	}
+
+	p.Queue.PushBack(playSet)
 }
 
 func (p *Player) Skip() {
@@ -176,7 +198,7 @@ func (p *Player) Skip() {
 func (p *Player) ClearQueue() {
 	log.WithFields(log.Fields{
 		"guild": p.Guild.Name,
-	}).Info("Clearing play queue")
+	}).Info("Clearing queue")
 	p.Queue = list.New()
 }
 

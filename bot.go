@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -107,6 +109,7 @@ func main() {
 
 	firstStart()
 	log.Info(fmt.Sprintf("%s is starting", BotName))
+	rand.Seed(time.Now().Unix())
 	Sounds = DiscoverSounds(SoundsDirectory)
 	Commands = DiscoverCommands()
 	Discord = OpenDiscordWebsocket(*Token)

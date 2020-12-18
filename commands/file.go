@@ -13,7 +13,7 @@ func (p File) Commands() []string {
 	return []string{"f", "file"}
 }
 
-func (_ File) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
+func (_ File) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
 	parts := strings.SplitN(m.Content, " ", 2)
 
 	if len(parts) < 2 {
@@ -46,7 +46,9 @@ func (_ File) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Cha
 
 			play := player.CreatePlay(sound, m.Author, voiceChannel, g)
 			play.Forced = true
-			p.Enqueue(play)
+
+			ps := player.CreatePlaySet(play)
+			p.Enqueue(ps)
 			p.StartPlayback()
 
 			/*err := Discord.ChannelMessageDelete(m.ChannelID, m.ID)
