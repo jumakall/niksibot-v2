@@ -175,8 +175,8 @@ func (p *Player) Enqueue(playSet *PlaySet) {
 		}).Info("Queuing play")
 	} else {
 		logger.WithFields(log.Fields{
-			"count": playSet.Length(),
-		}).Info("Queuing multiple plays")
+			"size": playSet.Length(),
+		}).Info("Queuing PlaySet")
 	}
 
 	p.Queue.PushBack(playSet)

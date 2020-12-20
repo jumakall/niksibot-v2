@@ -1,45 +1,36 @@
 package player
 
-import "container/list"
-
 type PlaySet struct {
-	queue *list.List
+	original []*Play
+	queue    []*Play
 }
 
-func CreatePlaySet(sound *Play) *PlaySet {
-	ps := &PlaySet{
-		queue: list.New(),
+func CreatePlaySet(plays []*Play) *PlaySet {
+	return &PlaySet{
+		original: plays,
+		queue:    plays,
 	}
-
-	if sound != nil {
-		ps.Push(sound)
-	}
-
-	return ps
 }
 
-func (ps PlaySet) Push(play *Play) {
-	ps.queue.PushBack(play)
+func (ps *PlaySet) Peek() *Play {
+	return ps.queue[0]
 }
 
-func (ps PlaySet) Peek() *Play {
-	return ps.queue.Front().Value.(*Play)
+func (ps *PlaySet) Take() *Play {
+	play := ps.queue[0]
+	ps.queue = ps.queue[1:]
+	return play
 }
 
-func (ps PlaySet) Take() *Play {
-	front := ps.queue.Front()
-	ps.queue.Remove(front)
-	return front.Value.(*Play)
+func (ps *PlaySet) IsExhausted() bool {
+	return len(ps.queue) <= 0
 }
 
-func (ps PlaySet) IsExhausted() bool {
-	return ps.queue.Len() <= 0
+func (ps *PlaySet) Reset() {
+	ps.queue = ps.original
+	// reset must re-create all plays, so skips won't be remembered
 }
 
-func (ps PlaySet) Length() int {
-	return ps.queue.Len()
-}
-
-func (ps PlaySet) Clear() {
-	ps.queue = list.New()
+func (ps *PlaySet) Length() int {
+	return len(ps.queue)
 }
