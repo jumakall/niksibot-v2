@@ -100,6 +100,7 @@ func main() {
 	var (
 		Token   = flag.String("t", "", "Discord Bot Token")
 		Verbose = flag.Bool("v", false, "Verbose")
+		CStatus = flag.String("status", "", "Custom status for the bot")
 	)
 	flag.Parse()
 
@@ -113,6 +114,11 @@ func main() {
 	Sounds = DiscoverSounds(SoundsDirectory)
 	Commands = DiscoverCommands()
 	Discord = OpenDiscordWebsocket(*Token)
+
+	status := CreateStatus(Discord)
+	if *CStatus != "" {
+		status.Messages = append(status.Messages, *CStatus)
+	}
 
 	// Wait for a signal to quit
 	c := make(chan os.Signal, 1)

@@ -10,7 +10,6 @@ import (
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 	log.Debug("Discord websocket connected")
-	s.UpdateStatus(0, fmt.Sprintf("with the new %s", BotName))
 	log.Info(fmt.Sprintf("%s is ready to serve", BotName))
 }
 
