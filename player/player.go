@@ -174,6 +174,13 @@ func (p *Player) Disconnect(actor *discordgo.User) {
 }
 
 func (p *Player) disconnect() {
+	if p.VC == nil {
+		log.WithFields(log.Fields{
+			"guild": p.Guild.Name,
+		}).Trace("Trying to disconnect when not connected to any voice channel")
+		return
+	}
+
 	log.WithFields(log.Fields{
 		"guild": p.Guild.Name,
 	}).Info("Disconnecting from voice channel")
