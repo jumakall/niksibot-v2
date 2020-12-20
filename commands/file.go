@@ -47,7 +47,7 @@ func (_ *File) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Ch
 			play := player.CreatePlay(sound, m.Author, voiceChannel, g)
 			play.Forced = true
 			ps := player.CreatePlaySet([]*player.Play{play})
-			p.Enqueue(ps)
+			p.Playlist.Enqueue(ps)
 			p.StartPlayback()
 
 			/*err := Discord.ChannelMessageDelete(m.ChannelID, m.ID)

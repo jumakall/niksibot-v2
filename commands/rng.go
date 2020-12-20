@@ -4,17 +4,16 @@ import (
 	"../player"
 	log "github.com/Sirupsen/logrus"
 	"github.com/bwmarrin/discordgo"
-	"math/rand"
 	"strings"
 )
 
-type Play struct{}
+type Rng struct{}
 
-func (_ *Play) Commands() []string {
-	return []string{"p", "play"}
+func (p *Rng) Commands() []string {
+	return []string{"rng"}
 }
 
-func (play *Play) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
+func (_ *Rng) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
 	parts := strings.SplitN(m.Content, " ", 2)
 
 	if len(parts) < 2 {
@@ -41,11 +40,16 @@ func (play *Play) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo
 	}
 
 	if parts[1] == "all" {
-		soundInventory := *p.Sounds
-		sound := soundInventory[rand.Intn(len(soundInventory))]
+		plays := []*player.Play{}
+		for _, sound := range *p.Sounds {
+			plays = append(plays, player.CreatePlay(sound, m.Author, voiceChannel, g))
+		}
 
-		play := player.CreatePlay(sound, m.Author, voiceChannel, g)
-		ps := player.CreatePlaySet([]*player.Play{play})
+		ps := player.CreatePlaySet(plays)
+		ps.Shuffle()
+		ps.ShuffleOnReset = true
+
+		p.Playlist.SetFiller(ps)
 		p.Playlist.Enqueue(ps)
 		p.StartPlayback()
 	}

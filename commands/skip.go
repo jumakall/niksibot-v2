@@ -12,5 +12,5 @@ func (p *Skip) Commands() []string {
 }
 
 func (_ *Skip) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
-	p.Skip()
+	p.Skip(m.Author)
 }

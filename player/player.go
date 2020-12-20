@@ -1,7 +1,6 @@
 package player
 
 import (
-	"container/list"
 	log "github.com/Sirupsen/logrus"
 	"github.com/bwmarrin/discordgo"
 	"sync"
@@ -20,14 +19,8 @@ type Player struct {
 	// VC is reference to currently active voice connection
 	VC *discordgo.VoiceConnection
 
-	// Queue is the current PlaySet queue
-	Queue *list.List
-
-	// CurrentPlaySet is the PlaySet currently being played
-	CurrentPlaySet *PlaySet
-
-	// NowPlaying is the currently playing Play
-	NowPlaying *Play
+	// Playlist manages PlaySets that Player receives
+	Playlist *Playlist
 
 	playerServiceLock    *sync.Mutex
 	playerServiceRunning bool
@@ -44,7 +37,7 @@ func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]
 		Sounds:               sounds,
 		Discord:              discord,
 		Guild:                guild,
-		Queue:                list.New(),
+		Playlist:             CreatePlaylist(),
 		playerServiceLock:    &sync.Mutex{},
 		playerServiceRunning: false,
 		DisconnectPending:    false,
@@ -52,7 +45,7 @@ func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]
 }
 
 func (p *Player) StartPlayback() {
-	if p.Queue.Len() <= 0 {
+	if p.Playlist.IsPlaylistEmpty() {
 		log.WithFields(log.Fields{
 			"guild":  p.Guild.Name,
 			"reason": "The queue is empty",
@@ -69,18 +62,11 @@ func (p *Player) StartPlayback() {
 }
 
 func (p *Player) backgroundPlayer() {
-	for p.Queue.Len() > 0 && !p.DisconnectPending {
-		front := p.Queue.Front()
-		p.Queue.Remove(front)
-		p.CurrentPlaySet = front.Value.(*PlaySet)
-
-		for !p.CurrentPlaySet.IsExhausted() && !p.DisconnectPending {
-			p.NowPlaying = p.CurrentPlaySet.Take()
-			p.playSound(p.NowPlaying)
-		}
+	for !p.Playlist.IsPlaylistEmpty() && !p.DisconnectPending {
+		play := p.Playlist.Advance()
+		p.playSound(play)
 	}
 
-	p.NowPlaying = nil
 	if p.DisconnectPending {
 		p.disconnect()
 	}
@@ -104,7 +90,7 @@ func (p *Player) playSound(play *Play) {
 		"forced":  play.Forced,
 	}).Info("Playing sound")
 
-	err = p.NowPlaying.PlayToVoiceChannel(vc)
+	err = play.PlayToVoiceChannel(vc)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"guild":   play.Guild.Name,
@@ -153,63 +139,35 @@ func (p *Player) connect(voiceChannel *discordgo.Channel) (*discordgo.VoiceConne
 	return p.VC, nil
 }
 
-func (p *Player) Enqueue(playSet *PlaySet) {
-	if playSet == nil {
-		log.WithFields(log.Fields{
-			"guild": p.Guild.Name,
-		}).Warning("Cannot queue null")
+func (p *Player) Skip(actor *discordgo.User) {
+	np := p.Playlist.NowPlaying
+	if np == nil {
 		return
 	}
 
-	logger := log.WithFields(log.Fields{
-		"guild": p.Guild.Name,
-	})
-
-	if playSet.Length() == 1 {
-		play := playSet.Peek()
-		logger.WithFields(log.Fields{
-			"channel": play.Channel.Name,
-			"user":    play.User.Username + "#" + play.User.Discriminator,
-			"file":    play.Sound.File,
-			"forced":  play.Forced,
-		}).Info("Queuing play")
-	} else {
-		logger.WithFields(log.Fields{
-			"size": playSet.Length(),
-		}).Info("Queuing PlaySet")
+	logger := log.WithFields(log.Fields{})
+	if actor != nil {
+		logger = log.WithFields(log.Fields{
+			"actor": actor.Username + "#" + actor.Discriminator,
+		})
 	}
 
-	p.Queue.PushBack(playSet)
-}
-
-func (p *Player) Skip() {
-	if p.NowPlaying == nil {
-		return
-	}
-
-	log.WithFields(log.Fields{
-		"guild":   p.NowPlaying.Guild.Name,
-		"channel": p.NowPlaying.Channel.Name,
-		"sound":   p.NowPlaying.Sound.File,
+	logger.WithFields(log.Fields{
+		"guild":   np.Guild.Name,
+		"channel": np.Channel.Name,
+		"sound":   np.Sound.File,
 	}).Info("Skipping play")
-	p.NowPlaying.Skipped = true
+	np.Skipped = true
 }
 
-func (p *Player) ClearQueue() {
-	log.WithFields(log.Fields{
-		"guild": p.Guild.Name,
-	}).Info("Clearing queue")
-	p.Queue = list.New()
-}
-
-func (p *Player) Disconnect() {
+func (p *Player) Disconnect(actor *discordgo.User) {
 	log.WithFields(log.Fields{
 		"guild": p.Guild.Name,
 	}).Trace("Disconnect from voice channel requested")
 
 	if p.playerServiceRunning {
 		p.DisconnectPending = true
-		p.Skip()
+		p.Skip(actor)
 	} else {
 		p.disconnect()
 	}
@@ -223,6 +181,7 @@ func (p *Player) disconnect() {
 	p.DisconnectPending = false
 	err := p.VC.Disconnect()
 	p.VC = nil
+	p.Playlist.Stop()
 
 	if err != nil {
 		log.WithFields(log.Fields{

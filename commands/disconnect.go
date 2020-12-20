@@ -12,5 +12,5 @@ func (_ *Disconnect) Commands() []string {
 }
 
 func (_ *Disconnect) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
-	p.Disconnect()
+	p.Disconnect(m.Author)
 }
