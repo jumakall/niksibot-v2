@@ -10,11 +10,11 @@ import (
 
 type Play struct{}
 
-func (_ Play) Commands() []string {
+func (_ *Play) Commands() []string {
 	return []string{"p", "play"}
 }
 
-func (_ Play) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
+func (_ *Play) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
 	parts := strings.SplitN(m.Content, " ", 2)
 
 	if len(parts) < 2 {
@@ -45,7 +45,7 @@ func (_ Play) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Cha
 		sound := soundInventory[rand.Intn(len(soundInventory))]
 
 		play := player.CreatePlay(sound, m.Author, voiceChannel, g)
-		ps := player.CreatePlaySet(play)
+		ps := player.CreatePlaySet([]*player.Play{play})
 		p.Enqueue(ps)
 		p.StartPlayback()
 	}

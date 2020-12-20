@@ -9,11 +9,11 @@ import (
 
 type File struct{}
 
-func (p File) Commands() []string {
+func (_ *File) Commands() []string {
 	return []string{"f", "file"}
 }
 
-func (_ File) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
+func (_ *File) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
 	parts := strings.SplitN(m.Content, " ", 2)
 
 	if len(parts) < 2 {
@@ -46,8 +46,7 @@ func (_ File) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Cha
 
 			play := player.CreatePlay(sound, m.Author, voiceChannel, g)
 			play.Forced = true
-
-			ps := player.CreatePlaySet(play)
+			ps := player.CreatePlaySet([]*player.Play{play})
 			p.Enqueue(ps)
 			p.StartPlayback()
 
