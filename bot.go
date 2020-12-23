@@ -98,22 +98,29 @@ func DiscoverSounds(path string) []*player.Sound {
 
 func main() {
 	var (
-		Token   = flag.String("t", "", "Discord Bot Token")
-		Verbose = flag.Bool("v", false, "Verbose")
-		CStatus = flag.String("status", "", "Custom status for the bot")
+		Token         = flag.String("t", "", "Discord Bot Token")
+		Verbose       = flag.Bool("v", false, "Verbose")
+		DoubleVerbose = flag.Bool("vv", false, "More verbose")
+		CStatus       = flag.String("status", "", "Custom status for the bot")
 	)
 	flag.Parse()
 
-	if *Verbose {
+	if *Verbose || *DoubleVerbose {
 		log.SetLevel(log.TraceLevel)
 	}
 
 	firstStart()
-	log.Info(fmt.Sprintf("%s is starting", BotName))
+	log.WithFields(log.Fields{
+		"discordgo": discordgo.VERSION,
+	}).Info(fmt.Sprintf("%s is starting", BotName))
 	rand.Seed(time.Now().Unix())
 	Sounds = DiscoverSounds(SoundsDirectory)
 	Commands = DiscoverCommands()
 	Discord = OpenDiscordWebsocket(*Token)
+
+	if *DoubleVerbose {
+		Discord.LogLevel = discordgo.LogDebug
+	}
 
 	status := CreateStatus(Discord)
 	if *CStatus != "" {
