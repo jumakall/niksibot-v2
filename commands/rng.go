@@ -10,10 +10,10 @@ import (
 type Rng struct{}
 
 func (p *Rng) Commands() []string {
-	return []string{"rng"}
+	return []string{"rng", "rng4ever"}
 }
 
-func (_ *Rng) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
+func (_ *Rng) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
 	parts := strings.SplitN(m.Content, " ", 2)
 
 	if len(parts) < 2 {
@@ -40,7 +40,7 @@ func (_ *Rng) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Cha
 	}
 
 	if parts[1] == "all" {
-		plays := []*player.Play{}
+		var plays []*player.Play
 		for _, sound := range *p.Sounds {
 			plays = append(plays, player.CreatePlay(sound, m.Author, voiceChannel, g))
 		}
