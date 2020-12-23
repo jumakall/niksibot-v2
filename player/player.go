@@ -125,7 +125,19 @@ func (p *Player) connect(voiceChannel *discordgo.Channel) (*discordgo.VoiceConne
 			"channel": voiceChannel.Name,
 		}).Debug("Changing voice channel")
 
-		err := p.VC.ChangeChannel(voiceChannel.ID, false, true)
+		//err := p.VC.ChangeChannel(voiceChannel.ID, false, true)
+		err := p.VC.Disconnect()
+		if err != nil {
+			log.WithFields(log.Fields{
+				"guild":   p.Guild.Name,
+				"channel": p.VC.ChannelID,
+				"err":     err,
+			}).Warning("Failed to disconnect from voice channel")
+			return nil, err
+		}
+
+		vc, err := p.Discord.ChannelVoiceJoin(p.Guild.ID, voiceChannel.ID, false, true)
+		p.VC = vc
 		if err != nil {
 			log.WithFields(log.Fields{
 				"guild":   p.Guild.Name,
