@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./commands"
-	"./player"
 	"github.com/bwmarrin/discordgo"
+	"github.com/jumakall/niksibot-v2/commands"
+	"github.com/jumakall/niksibot-v2/player"
 )
 
 func DiscoverCommands() []Command {

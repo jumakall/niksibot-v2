@@ -1,8 +1,8 @@
 package player
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 	"sync"
 )
 

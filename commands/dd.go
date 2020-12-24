@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"../player"
 	"github.com/bwmarrin/discordgo"
+	"github.com/jumakall/niksibot-v2/player"
 )
 
 type DD struct{}

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"./player"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/bwmarrin/discordgo"
+	"github.com/jumakall/niksibot-v2/player"
+	log "github.com/sirupsen/logrus"
 	"strings"
 )
 

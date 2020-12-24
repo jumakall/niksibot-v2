@@ -2,7 +2,7 @@ package player
 
 import (
 	"container/list"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type Playlist struct {

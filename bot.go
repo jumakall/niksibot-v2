@@ -1,10 +1,10 @@
 package main
 
 import (
-	"./player"
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/jumakall/niksibot-v2/player"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
