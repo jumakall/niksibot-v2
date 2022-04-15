@@ -22,13 +22,16 @@ type Player struct {
 	// Playlist manages PlaySets that Player receives
 	Playlist *Playlist
 
+	// History contains plays that have been recently played
+	History []*Play
+
 	playerServiceLock    *sync.Mutex
 	playerServiceRunning bool
 
 	DisconnectPending bool
 }
 
-func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]*Sound) *Player {
+func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]*Sound, historyLength int) *Player {
 	log.WithFields(log.Fields{
 		"guild": guild.Name,
 	}).Trace("Instancing a player")
@@ -38,6 +41,7 @@ func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]
 		Discord:              discord,
 		Guild:                guild,
 		Playlist:             CreatePlaylist(),
+		History:              make([]*Play, historyLength),
 		playerServiceLock:    &sync.Mutex{},
 		playerServiceRunning: false,
 		DisconnectPending:    false,
@@ -89,6 +93,7 @@ func (p *Player) playSound(play *Play) {
 		"sound":   play.Sound.File,
 		"forced":  play.Forced,
 	}).Info("Playing sound")
+	p.addToHistory(play)
 
 	err = play.PlayToVoiceChannel(vc)
 	if err != nil {
@@ -100,6 +105,16 @@ func (p *Player) playSound(play *Play) {
 			"err":     err,
 		}).Warning("Error while playing sound")
 	}
+}
+
+func (p *Player) addToHistory(play *Play) {
+	// shift everything by one if history is full
+	for i := len(p.History) - 1; i > 0; i-- {
+		p.History[i] = p.History[i-1]
+	}
+
+	// add play to history
+	p.History[0] = play
 }
 
 func (p *Player) connect(voiceChannel *discordgo.Channel) (*discordgo.VoiceConnection, error) {

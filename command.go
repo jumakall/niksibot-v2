@@ -7,7 +7,7 @@ import (
 )
 
 func DiscoverCommands() []Command {
-	return []Command{&commands.File{}, &commands.Skip{}, &commands.DD{}, &commands.Play{}, &commands.Rng{}, &commands.Clear{}}
+	return []Command{&commands.File{}, &commands.Skip{}, &commands.DD{}, &commands.Play{}, &commands.Rng{}, &commands.Clear{}, &commands.History{}, &commands.Queue{}}
 }
 
 type Command interface {

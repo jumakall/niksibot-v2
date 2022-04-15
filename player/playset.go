@@ -1,15 +1,27 @@
 package player
 
-import "math/rand"
+import (
+	"github.com/bwmarrin/discordgo"
+	"math/rand"
+)
 
 type PlaySet struct {
+	Guild   *discordgo.Guild
+	Channel *discordgo.Channel
+	User    *discordgo.User
+
+	Name           string
 	original       []*Play
 	queue          []*Play
 	ShuffleOnReset bool
 }
 
-func CreatePlaySet(plays []*Play) *PlaySet {
+func CreatePlaySet(name string, plays []*Play, user *discordgo.User, channel *discordgo.Channel, guild *discordgo.Guild) *PlaySet {
 	return &PlaySet{
+		Guild:          guild,
+		Channel:        channel,
+		User:           user,
+		Name:           name,
 		original:       plays,
 		queue:          plays,
 		ShuffleOnReset: false,

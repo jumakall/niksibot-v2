@@ -45,7 +45,7 @@ func (play *Play) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo
 		sound := soundInventory[rand.Intn(len(soundInventory))]
 
 		play := player.CreatePlay(sound, m.Author, voiceChannel, g)
-		ps := player.CreatePlaySet([]*player.Play{play})
+		ps := player.CreatePlaySet(play.Sound.Name, []*player.Play{play}, m.Author, voiceChannel, g)
 		p.Playlist.Enqueue(ps)
 		p.StartPlayback()
 	}

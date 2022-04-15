@@ -48,7 +48,7 @@ func onMessageReceive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if Players[guild.ID] == nil {
-		Players[guild.ID] = player.CreatePlayer(Discord, guild, &Sounds)
+		Players[guild.ID] = player.CreatePlayer(Discord, guild, &Sounds, PlayerHistoryLength)
 	}
 	player := Players[guild.ID]
 

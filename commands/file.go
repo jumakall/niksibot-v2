@@ -46,7 +46,7 @@ func (_ *File) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Ch
 
 			play := player.CreatePlay(sound, m.Author, voiceChannel, g)
 			play.Forced = true
-			ps := player.CreatePlaySet([]*player.Play{play})
+			ps := player.CreatePlaySet(play.Sound.Name, []*player.Play{play}, m.Author, voiceChannel, g)
 			p.Playlist.Enqueue(ps)
 			p.StartPlayback()
 

@@ -33,6 +33,9 @@ const (
 
 	// SoundExtension is used to filter sounds in SoundsDirectory
 	SoundExtension = ".dca"
+
+	// PlayerHistoryLength specifies how many last plays the player remembers
+	PlayerHistoryLength = 20
 )
 
 var (
@@ -122,6 +125,7 @@ func main() {
 		Discord.LogLevel = discordgo.LogDebug
 	}
 
+	// Create status object that updates status periodically
 	status := CreateStatus(Discord)
 	if *CStatus != "" {
 		status.Messages = append(status.Messages, *CStatus)
@@ -132,4 +136,9 @@ func main() {
 	signal.Notify(c, os.Interrupt, os.Kill)
 	<-c
 	log.Info(fmt.Sprintf("%s is done for this time, see you later", BotName))
+
+	// Close websocket
+	log.Debug("Closing Discord websocket")
+	Discord.Close()
+	log.Debug("Discord websocket closed")
 }

@@ -45,7 +45,7 @@ func (_ *Rng) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Cha
 			plays = append(plays, player.CreatePlay(sound, m.Author, voiceChannel, g))
 		}
 
-		ps := player.CreatePlaySet(plays)
+		ps := player.CreatePlaySet("all random", plays, m.Author, voiceChannel, g)
 		ps.Shuffle()
 		ps.ShuffleOnReset = true
 
