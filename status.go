@@ -22,7 +22,7 @@ func CreateStatus(discord *discordgo.Session) *Status {
 		Active: 0,
 	}
 
-	discord.UpdateStatus(0, status.Messages[status.Active])
+	discord.UpdateGameStatus(0, status.Messages[status.Active])
 
 	go func() {
 		for range time.Tick(60 * time.Second) {
@@ -31,7 +31,7 @@ func CreateStatus(discord *discordgo.Session) *Status {
 				status.Active = 0
 			}
 
-			discord.UpdateStatus(0, status.Messages[status.Active])
+			discord.UpdateGameStatus(0, status.Messages[status.Active])
 		}
 	}()
 
