@@ -56,7 +56,7 @@ func firstStart() {
 	}
 
 	log.Info(fmt.Sprintf("Greetings! %s is doing a bit of preparation work since it is started for the first time", BotName))
-	createDB(DatabaseLocation)
+	//createDB(DatabaseLocation)
 }
 
 func DiscoverSounds(path string) []*player.Sound {
