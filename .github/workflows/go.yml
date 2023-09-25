@@ -10,7 +10,7 @@ jobs:
 
   build-linux:
     name: "Build for Linux"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
 
     - name: Check out code
