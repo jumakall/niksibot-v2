@@ -110,7 +110,7 @@ func main() {
 		log.SetLevel(log.TraceLevel)
 	}
 
-	firstStart()
+	//firstStart()
 	log.WithFields(log.Fields{
 		"discordgo": discordgo.VERSION,
 	}).Info(fmt.Sprintf("%s is starting", BotName))
