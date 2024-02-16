@@ -51,22 +51,23 @@ func rngCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.
 		return
 	}
 
-	if tag == "all" {
-		var plays []*player.Play
-		for _, sound := range *p.Sounds {
-			plays = append(plays, player.CreatePlay(sound, user, voiceChannel, guild))
-		}
-
-		ps := player.CreatePlaySet(plays)
-		ps.Shuffle()
-		ps.ShuffleOnReset = true
-
-		p.Playlist.SetFiller(ps)
-		p.Playlist.Enqueue(ps)
-		p.StartPlayback()
-
-		SendResponse(s, i, ":loudspeaker: "+tag)
-	} else {
-		SendResponse(s, i, "Sorry, currently only \"all\" tag is supported.")
+	var plays []*player.Play
+	for _, sound := range p.TagManager.GetTag(tag) {
+		plays = append(plays, player.CreatePlay(sound, user, voiceChannel, guild))
 	}
+
+	if plays == nil {
+		SendResponse(s, i, "Sorry, couldn't find anything")
+		return
+	}
+
+	ps := player.CreatePlaySet(plays)
+	ps.Shuffle()
+	ps.ShuffleOnReset = true
+
+	p.Playlist.SetFiller(ps)
+	p.Playlist.Enqueue(ps)
+	p.StartPlayback()
+
+	SendResponse(s, i, ":loudspeaker: "+tag)
 }

@@ -9,7 +9,9 @@ import (
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 	log.Debug("Discord websocket connected")
-	log.Debug("Hold tight, registering commands...")
+	log.Info(fmt.Sprintf("%s is ready to serve", BotName))
+
+	log.Debug("Registering commands to Discord in the background...")
 
 	// register commands
 	for _, v := range Registrations {
@@ -27,7 +29,7 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 		}).Trace("Command registered")
 	}
 
-	log.Info(fmt.Sprintf("%s is ready to serve", BotName))
+	log.Debug("Commands registered to Discord")
 }
 
 func onBotInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -53,7 +55,7 @@ func onBotInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// find the guild's player or create a new one
 	if Players[guild.ID] == nil {
-		Players[guild.ID] = player.CreatePlayer(Discord, guild, &Sounds)
+		Players[guild.ID] = player.CreatePlayer(Discord, guild, &Sounds, TagManager)
 	}
 	p := Players[guild.ID]
 

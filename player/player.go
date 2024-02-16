@@ -10,6 +10,9 @@ type Player struct {
 	// Sounds is a list of all available sounds
 	Sounds *[]*Sound
 
+	// TagManager manages tag and sound relations
+	TagManager *TagManager
+
 	// Discord references to the current Discord session
 	Discord *discordgo.Session
 
@@ -28,13 +31,14 @@ type Player struct {
 	DisconnectPending bool
 }
 
-func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]*Sound) *Player {
+func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]*Sound, tagManager *TagManager) *Player {
 	log.WithFields(log.Fields{
 		"guild": guild.Name,
 	}).Trace("Instancing a player")
 
 	return &Player{
 		Sounds:               sounds,
+		TagManager:           tagManager,
 		Discord:              discord,
 		Guild:                guild,
 		Playlist:             CreatePlaylist(),

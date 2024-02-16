@@ -6,11 +6,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/jumakall/niksibot-v2/commands"
 	"github.com/jumakall/niksibot-v2/player"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -27,7 +27,7 @@ const (
 	DatabaseSchemaVersion = 1
 
 	// SoundsDirectory specifies the directory for sounds files
-	SoundsDirectory = "./audio"
+	SoundsDirectory = "audio"
 
 	// SoundExtension is used to filter sounds in SoundsDirectory
 	SoundExtension = ".dca"
@@ -36,6 +36,9 @@ const (
 var (
 	// Sounds is a list of all sound files
 	Sounds []*player.Sound
+
+	// TagManager manages tag and sound relations
+	TagManager *player.TagManager
 
 	// Registrations contains Discord command definitions
 	Registrations []*discordgo.ApplicationCommand
@@ -66,28 +69,44 @@ func DiscoverSounds(path string) []*player.Sound {
 	}).Debug("Discovering sounds")
 
 	var sounds []*player.Sound
-	files, err := ioutil.ReadDir(path)
+
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		// return in case of error
+		if err != nil {
+			return err
+		}
+
+		// filter folders and files with wrong extension
+		if info.IsDir() || filepath.Ext(info.Name()) != SoundExtension {
+			return nil
+		}
+
+		path = strings.ReplaceAll(path, "\\", "/")
+		name := info.Name()[:len(info.Name())-len(filepath.Ext(info.Name()))]
+		trimmedPath := strings.TrimSuffix(path, info.Name())
+		trimmedPath = trimmedPath[:len(trimmedPath)-1]
+
+		// log found file
+		log.WithFields(log.Fields{
+			"name": name,
+			"file": info.Name(),
+			"path": trimmedPath,
+			"size": info.Size(),
+		}).Trace("Discovered sound")
+		sound := player.CreateSound(name, info.Name(), trimmedPath)
+		sounds = append(sounds, sound)
+
+		autotag := strings.TrimLeft(trimmedPath, SoundsDirectory)
+		autotag = autotag[1:]
+		TagManager.TagSound(autotag, sound)
+
+		return nil
+	})
 	if err != nil {
 		log.WithFields(log.Fields{
 			"path": path,
 			"err":  err,
 		}).Fatal("Sound discovery failed")
-	}
-
-	for _, f := range files {
-		// filter files with wrong extension
-		if filepath.Ext(f.Name()) != SoundExtension {
-			continue
-		}
-
-		log.WithFields(log.Fields{
-			"path": path,
-			"file": f.Name(),
-			"size": f.Size(),
-		}).Trace("Discovered sound")
-
-		name := f.Name()[:len(f.Name())-len(filepath.Ext(f.Name()))]
-		sounds = append(sounds, player.CreateSound(name, f.Name(), path))
 	}
 
 	log.WithFields(log.Fields{
@@ -115,6 +134,7 @@ func main() {
 		"discordgo": discordgo.VERSION,
 	}).Info(fmt.Sprintf("%s is starting", BotName))
 	rand.Seed(time.Now().Unix())
+	TagManager = player.CreateTagManager(&Sounds)
 	Sounds = DiscoverSounds(SoundsDirectory)
 	Registrations = commands.DiscoverRegistrations()
 	Commands = commands.DiscoverCommands()
