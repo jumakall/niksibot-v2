@@ -9,6 +9,7 @@ import (
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 	log.Debug("Discord websocket connected")
+	log.Debug("Hold tight, registering commands...")
 
 	// register commands
 	for _, v := range Registrations {
