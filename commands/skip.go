@@ -7,10 +7,22 @@ import (
 
 type Skip struct{}
 
-func (p *Skip) Commands() []string {
-	return []string{"s", "skip"}
+func (p *Skip) Register() []*discordgo.ApplicationCommand {
+	return []*discordgo.ApplicationCommand{
+		{
+			Name:        "skip",
+			Description: "Skip currently playing sound",
+		},
+	}
+}
+func (p *Skip) Commands() map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
+	return map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player){
+		"skip": skip,
+	}
 }
 
-func (_ *Skip) Execute(_ *discordgo.Session, _ *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
-	p.Skip(m.Author)
+func skip(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
+	p.Skip(i.Member.User)
+
+	SendResponse(s, i, ":fast_forward: "+p.Playlist.NowPlaying.Sound.Name)
 }

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/jumakall/niksibot-v2/commands"
 	"github.com/jumakall/niksibot-v2/player"
 	"io/ioutil"
 	"math/rand"
@@ -18,9 +19,6 @@ import (
 const (
 	// BotName specifies the name of the bot
 	BotName = "NiksiBot"
-
-	// CommandPrefix specifies how all commands should begin
-	CommandPrefix = "!"
 
 	// DatabaseLocation specifies the location of SQLite database file
 	DatabaseLocation = "./db.sqlite"
@@ -39,8 +37,11 @@ var (
 	// Sounds is a list of all sound files
 	Sounds []*player.Sound
 
+	// Registrations contains Discord command definitions
+	Registrations []*discordgo.ApplicationCommand
+
 	// Commands is a list of all available commands
-	Commands []Command
+	Commands *map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player)
 
 	// Discord is currently active session
 	Discord *discordgo.Session
@@ -115,7 +116,8 @@ func main() {
 	}).Info(fmt.Sprintf("%s is starting", BotName))
 	rand.Seed(time.Now().Unix())
 	Sounds = DiscoverSounds(SoundsDirectory)
-	Commands = DiscoverCommands()
+	Registrations = commands.DiscoverRegistrations()
+	Commands = commands.DiscoverCommands()
 	Discord = OpenDiscordWebsocket(*Token)
 
 	if *DoubleVerbose {

@@ -7,12 +7,24 @@ import (
 
 type DD struct{}
 
-func (p *DD) Commands() []string {
-	return []string{"dd"}
+func (p *DD) Register() []*discordgo.ApplicationCommand {
+	return []*discordgo.ApplicationCommand{
+		{
+			Name:        "dd",
+			Description: "Stop playback, clear queue and disconnect",
+		},
+	}
+}
+func (p *DD) Commands() map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
+	return map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player){
+		"dd": dd,
+	}
 }
 
-func (_ *DD) Execute(s *discordgo.Session, g *discordgo.Guild, c *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
+func dd(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
 	p.Playlist.SetFiller(nil)
 	p.Playlist.Clear()
-	p.Disconnect(m.Author)
+	p.Disconnect(i.Member.User)
+
+	SendResponse(s, i, "See you later :wave:")
 }

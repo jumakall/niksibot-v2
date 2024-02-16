@@ -4,68 +4,74 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/jumakall/niksibot-v2/player"
 	log "github.com/sirupsen/logrus"
-	"strings"
 )
 
 type File struct{}
 
-func (_ *File) Commands() []string {
-	return []string{"f", "file"}
+func (_ *File) Register() []*discordgo.ApplicationCommand {
+	return []*discordgo.ApplicationCommand{
+		{
+			Name:        "file",
+			Description: "Queue a specific file",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "file",
+					Description: "File to queue",
+					Required:    true,
+				},
+			},
+		},
+	}
+}
+func (_ *File) Commands() map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
+	return map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player){
+		"file": fileCommand,
+	}
 }
 
-func (_ *File) Execute(s *discordgo.Session, g *discordgo.Guild, _ *discordgo.Channel, m *discordgo.MessageCreate, p *player.Player) {
-	parts := strings.SplitN(m.Content, " ", 2)
+func fileCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
+	user := i.Member.User
+	options := i.ApplicationCommandData().Options
+	file := options[0].StringValue()
 
-	if len(parts) < 2 {
-		log.WithFields(log.Fields{
-			"guild":   m.GuildID,
-			"channel": m.ChannelID,
-			"user":    m.Author.Username + "#" + m.Author.Discriminator,
-			"message": m.Content,
-			"reason":  "No file was specified",
-		}).Warning("Unable to create a play")
+	guild, _ := s.State.Guild(i.GuildID)
+	if guild == nil {
 		return
 	}
 
 	foundFile := false
 	for _, sound := range *p.Sounds {
-		if sound.Name == parts[1] {
+		if sound.Name == file {
 			foundFile = true
 
-			voiceChannel := player.FindUsersVoiceChannel(s.State, g, m.Author)
+			voiceChannel := player.FindUsersVoiceChannel(s.State, guild, user)
 			if voiceChannel == nil {
 				log.WithFields(log.Fields{
-					"guild":   m.GuildID,
-					"channel": m.ChannelID,
-					"user":    m.Author.Username + "#" + m.Author.Discriminator,
-					"message": m.Content,
-					"reason":  "The user hasn't connected to a voice channel",
+					"guild":  guild.Name,
+					"user":   user.Username,
+					"reason": "The user hasn't connected to a voice channel",
 				}).Warning("Unable to create a play")
+				SendResponse(s, i, ":telephone: Connect to a voice channel and try again")
 				return
 			}
 
-			play := player.CreatePlay(sound, m.Author, voiceChannel, g)
+			play := player.CreatePlay(sound, user, voiceChannel, guild)
 			play.Forced = true
 			ps := player.CreatePlaySet([]*player.Play{play})
 			p.Playlist.Enqueue(ps)
 			p.StartPlayback()
 
-			/*err := Discord.ChannelMessageDelete(m.ChannelID, m.ID)
-			if err != nil {
-				log.WithFields(log.Fields{
-					"err": err,
-				}).Warning("Failed to remove message")
-			}*/
+			SendResponse(s, i, ":loud_sound: "+sound.Name)
 		}
 	}
 
 	if !foundFile {
 		log.WithFields(log.Fields{
-			"guild":   m.GuildID,
-			"channel": m.ChannelID,
-			"user":    m.Author.Username + "#" + m.Author.Discriminator,
-			"message": m.Content,
-			"reason":  "No matching file for the request",
+			"guild":  guild.Name,
+			"user":   user.Username,
+			"reason": "No matching file for the request",
 		}).Warning("Unable to create a play")
+		SendResponse(s, i, "Couldn't find \""+file+"\" :interrobang:")
 	}
 }
