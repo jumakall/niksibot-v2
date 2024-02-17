@@ -44,17 +44,17 @@ func PlayTag(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Pla
 		return
 	}
 
-	if tag == "all" {
-		soundInventory := *p.Sounds
-		sound := soundInventory[rand.Intn(len(soundInventory))]
-
-		play := player.CreatePlay(sound, i.Member.User, voiceChannel, guild)
-		ps := player.CreatePlaySet([]*player.Play{play})
-		p.Playlist.Enqueue(ps)
-		p.StartPlayback()
-
-		SendResponse(s, i, ":loud_sound: "+sound.Name)
-	} else {
-		SendResponse(s, i, "Sorry, currently only \"all\" tag is supported.")
+	soundInventory := p.TagManager.GetTag(tag)
+	if soundInventory == nil {
+		SendResponse(s, i, "Sorry, couldn't find anything")
+		return
 	}
+	sound := soundInventory[rand.Intn(len(soundInventory))]
+
+	play := player.CreatePlay(sound, i.Member.User, voiceChannel, guild)
+	ps := player.CreatePlaySet([]*player.Play{play})
+	p.Playlist.Enqueue(ps)
+	p.StartPlayback()
+
+	SendResponse(s, i, ":loud_sound: "+sound.Name)
 }
