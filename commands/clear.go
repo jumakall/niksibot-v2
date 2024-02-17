@@ -25,7 +25,6 @@ func (p *Clear) Commands() map[string]func(s *discordgo.Session, i *discordgo.In
 func clearCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
 	p.Playlist.SetFiller(nil)
 	p.Playlist.Clear()
-	p.Skip(i.Member.User)
 
 	SendResponse(s, i, ":put_litter_in_its_place: Queue cleared")
 }
