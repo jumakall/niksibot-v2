@@ -17,6 +17,7 @@ func CreateStatus(discord *discordgo.Session) *Status {
 		Session: discord,
 		Messages: []string{
 			fmt.Sprintf("with the new %s", BotName),
+			fmt.Sprintf("with version %s", CommitHash),
 		},
 		Active: 0,
 	}

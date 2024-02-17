@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
 	"github.com/jumakall/niksibot-v2/commands"
 	"github.com/jumakall/niksibot-v2/player"
 	"math/rand"
@@ -35,6 +36,18 @@ const (
 )
 
 var (
+	// SentryDSN defines where to send error details
+	SentryDSN = ""
+
+	// Environment information is included in error reports
+	Environment = "dev"
+
+	// CommitHash is the commit from which the app was built from
+	CommitHash = "dev"
+
+	// Release is included in error reports
+	Release = "niksibot-v2@" + CommitHash
+
 	// Sounds is a list of all sound files
 	Sounds []*player.Sound
 
@@ -119,6 +132,27 @@ func DiscoverSounds(path string) []*player.Sound {
 }
 
 func main() {
+	// enable error reporting to Sentry
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:         SentryDSN,
+		Environment: Environment,
+		Release:     Release,
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
+	defer sentry.Recover()
+
+	log.WithFields(log.Fields{
+		"sentry-sdk": sentry.SDKVersion,
+	}).Info("Error reporting enabled, error and context data will be uploaded in case of an error.")
+
 	var (
 		Token         = flag.String("t", "", "Discord Bot Token")
 		Verbose       = flag.Bool("v", false, "Verbose")
@@ -133,7 +167,10 @@ func main() {
 
 	//firstStart()
 	log.WithFields(log.Fields{
-		"discordgo": discordgo.VERSION,
+		"discordgo":   discordgo.VERSION,
+		"environment": Environment,
+		"commit":      CommitHash,
+		"release":     Release,
 	}).Info(fmt.Sprintf("%s is starting", BotName))
 	rand.Seed(time.Now().Unix())
 	TagManager = player.CreateTagManager(&Sounds)

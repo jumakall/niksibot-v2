@@ -3,11 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
 	"github.com/jumakall/niksibot-v2/player"
 	log "github.com/sirupsen/logrus"
 )
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
+	defer sentry.Recover()
+
 	log.Debug("Discord websocket connected")
 	log.Info(fmt.Sprintf("%s is ready to serve", BotName))
 
@@ -33,6 +36,8 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 }
 
 func onBotInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	defer sentry.Recover()
+
 	command := i.ApplicationCommandData().Name
 	user := i.Member.User.Username
 
