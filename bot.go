@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -146,6 +147,7 @@ func main() {
 	}
 
 	status := CreateStatus(Discord)
+	status.Messages = append(status.Messages, "with "+strconv.Itoa(len(Sounds))+" sounds")
 	if *CStatus != "" {
 		status.Messages = append(status.Messages, *CStatus)
 	}

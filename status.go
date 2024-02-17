@@ -17,7 +17,6 @@ func CreateStatus(discord *discordgo.Session) *Status {
 		Session: discord,
 		Messages: []string{
 			fmt.Sprintf("with the new %s", BotName),
-			fmt.Sprintf("%s rolling release", BotName),
 		},
 		Active: 0,
 	}
