@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	classes = []Command{&Play{}, &DD{}, &Skip{}, &File{}, &Clear{}, &Rng{}}
+	classes = []Command{&Play{}, &DD{}, &Skip{}, &File{}, &Clear{}, &Rng{}, &NowPlaying{}}
 )
 
 func DiscoverRegistrations() []*discordgo.ApplicationCommand {
