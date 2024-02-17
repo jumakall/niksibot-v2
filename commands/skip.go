@@ -24,5 +24,5 @@ func (p *Skip) Commands() map[string]func(s *discordgo.Session, i *discordgo.Int
 func skip(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
 	p.Skip(i.Member.User)
 
-	SendResponse(s, i, ":fast_forward: "+p.Playlist.NowPlaying.Sound.Name)
+	SendResponse(s, i, ":no_entry_sign: "+p.Playlist.NowPlaying.Sound.Name)
 }
