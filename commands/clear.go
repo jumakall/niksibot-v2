@@ -15,7 +15,6 @@ func (p *Clear) Register() []*discordgo.ApplicationCommand {
 		},
 	}
 }
-
 func (p *Clear) Commands() map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) {
 	return map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player){
 		"clear": clearCommand,
