@@ -11,7 +11,7 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 	log.Debug("Discord websocket connected")
 	log.Info(fmt.Sprintf("%s is ready to serve", BotName))
 
-	log.Debug("Registering commands to Discord in the background...")
+	log.Debug("Updating command registrations in background")
 
 	// register commands
 	for _, v := range Registrations {
@@ -29,7 +29,7 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 		}).Trace("Command registered")
 	}
 
-	log.Debug("Commands registered to Discord")
+	log.Info("Command registrations updated to Discord")
 }
 
 func onBotInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -51,7 +51,7 @@ func onBotInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"Command": command,
 		"User":    user,
 		"Guild":   guild.Name,
-	}).Info("Interaction received")
+	}).Debug("Interaction received")
 
 	// find the guild's player or create a new one
 	if Players[guild.ID] == nil {

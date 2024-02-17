@@ -110,8 +110,9 @@ func DiscoverSounds(path string) []*player.Sound {
 	}
 
 	log.WithFields(log.Fields{
-		"path": path,
-	}).Debug("Sound discovery completed")
+		"path":  path,
+		"count": len(sounds),
+	}).Info("Sound discovery completed")
 
 	return sounds
 }
