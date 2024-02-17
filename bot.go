@@ -40,7 +40,7 @@ var (
 	SentryDSN = ""
 
 	// Environment information is included in error reports
-	Environment = "dev"
+	Environment = "development"
 
 	// CommitHash is the commit from which the app was built from
 	CommitHash = "dev"
