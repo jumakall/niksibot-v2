@@ -14,21 +14,22 @@ jobs:
     steps:
 
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: ^1.21
+        go-version: ^1.22
 
     - name: Build
       run: go build -ldflags="-X main.Environment=production -X main.CommitHash=${{github.sha}} -X main.SentryDSN=${{secrets.SENTRY_DSN}}" -o build/niksibot -v .
       
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: niksibot-linux
         path: build/niksibot
+        if-no-files-found: error
 
   build-win:
     name: "Build for Windows"
@@ -36,21 +37,22 @@ jobs:
     steps:
 
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: ^1.21
+        go-version: ^1.22
 
     - name: Build
       run: go build -ldflags="-X main.Environment=production -X main.CommitHash=${{github.sha}} -X main.SentryDSN=${{secrets.SENTRY_DSN}}" -o build/niksibot.exe -v .
       
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: niksibot-win
         path: build/niksibot.exe
+        if-no-files-found: error
 
   publish-sentry-release:
     name: "Publish Sentry release"
@@ -59,7 +61,7 @@ jobs:
     steps:
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
