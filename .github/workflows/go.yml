@@ -22,14 +22,24 @@ jobs:
         go-version: ^1.21
 
     - name: Build
-      run: go build -ldflags="-X main.Environment=production -X main.CommitHash=${{github.sha}} -X main.SentryDSN=${{secrets.SENTRYDSN}}" -o build/niksibot -v .
+      run: go build -ldflags="-X main.Environment=production -X main.CommitHash=${{github.sha}} -X main.SentryDSN=${{secrets.SENTRY_DSN}}" -o build/niksibot -v .
       
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: niksibot-linux
         path: build/niksibot
-        
+
+    - name: Publish Sentry release
+      uses: getsentry/action-release@v1.7.0
+      env:
+        SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
+        SENTRY_ORG: ${{secrets.SENTRY_ORG}}
+        SENTRY_PROJECT: ${{secrets.SENTRY_PROJECT}}
+      with:
+        environment: production
+
+
   build-win:
     name: "Build for Windows"
     runs-on: windows-latest
@@ -44,7 +54,7 @@ jobs:
         go-version: ^1.21
 
     - name: Build
-      run: go build -ldflags="-X main.Environment=production -X main.CommitHash=${{github.sha}} -X main.SentryDSN=${{secrets.SENTRYDSN}}" -o build/niksibot.exe -v .
+      run: go build -ldflags="-X main.Environment=production -X main.CommitHash=${{github.sha}} -X main.SentryDSN=${{secrets.SENTRY_DSN}}" -o build/niksibot.exe -v .
       
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
