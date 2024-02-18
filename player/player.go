@@ -13,6 +13,9 @@ type Player struct {
 	// TagManager manages tag and sound relations
 	TagManager *TagManager
 
+	// Analytics sends analytics data to remote endpoint
+	Analytics *Analytics
+
 	// Discord references to the current Discord session
 	Discord *discordgo.Session
 
@@ -31,7 +34,7 @@ type Player struct {
 	DisconnectPending bool
 }
 
-func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]*Sound, tagManager *TagManager) *Player {
+func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]*Sound, tagManager *TagManager, analytics *Analytics) *Player {
 	log.WithFields(log.Fields{
 		"guild": guild.Name,
 	}).Trace("Instancing a player")
@@ -39,6 +42,7 @@ func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]
 	return &Player{
 		Sounds:               sounds,
 		TagManager:           tagManager,
+		Analytics:            analytics,
 		Discord:              discord,
 		Guild:                guild,
 		Playlist:             CreatePlaylist(),
@@ -93,6 +97,8 @@ func (p *Player) playSound(play *Play) {
 		"sound":   play.Sound.File,
 		"forced":  play.Forced,
 	}).Info("Playing sound")
+
+	p.Analytics.Play(play)
 
 	err = play.PlayToVoiceChannel(vc)
 	if err != nil {
@@ -162,6 +168,8 @@ func (p *Player) Skip(actor *discordgo.User) {
 		"sound":   np.Sound.File,
 	}).Info("Skipping play")
 	np.Skipped = true
+
+	p.Analytics.Skip(np)
 }
 
 func (p *Player) Disconnect(actor *discordgo.User) {

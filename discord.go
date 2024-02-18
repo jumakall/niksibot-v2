@@ -60,7 +60,7 @@ func onBotInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// find the guild's player or create a new one
 	if Players[guild.ID] == nil {
-		Players[guild.ID] = player.CreatePlayer(Discord, guild, &Sounds, TagManager)
+		Players[guild.ID] = player.CreatePlayer(Discord, guild, &Sounds, TagManager, Analytics)
 	}
 	p := Players[guild.ID]
 

@@ -48,11 +48,17 @@ var (
 	// Release is included in error reports
 	Release = "niksibot-v2@" + CommitHash
 
+	// AnalyticsEndpoint is where analytics data is sent
+	AnalyticsEndpoint = ""
+
 	// Sounds is a list of all sound files
 	Sounds []*player.Sound
 
 	// TagManager manages tag and sound relations
 	TagManager *player.TagManager
+
+	// Analytics sends statistics to remote endpoint
+	Analytics *player.Analytics
 
 	// Registrations contains Discord command definitions
 	Registrations []*discordgo.ApplicationCommand
@@ -177,6 +183,7 @@ func main() {
 	Sounds = DiscoverSounds(SoundsDirectory)
 	Registrations = commands.DiscoverRegistrations()
 	Commands = commands.DiscoverCommands()
+	Analytics = player.InitializeAnalytics(AnalyticsEndpoint)
 	Discord = OpenDiscordWebsocket(*Token)
 
 	if *DoubleVerbose {
