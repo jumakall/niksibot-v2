@@ -7,11 +7,8 @@ import (
 )
 
 type Player struct {
-	// Sounds is a list of all available sounds
-	Sounds *[]*Sound
-
-	// TagManager manages tag and sound relations
-	TagManager *TagManager
+	// Library manages tag and sound relations
+	Library *Library
 
 	// Analytics sends analytics data to remote endpoint
 	Analytics *Analytics
@@ -34,14 +31,13 @@ type Player struct {
 	DisconnectPending bool
 }
 
-func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, sounds *[]*Sound, tagManager *TagManager, analytics *Analytics) *Player {
+func CreatePlayer(discord *discordgo.Session, guild *discordgo.Guild, tagManager *Library, analytics *Analytics) *Player {
 	log.WithFields(log.Fields{
 		"guild": guild.Name,
 	}).Trace("Instancing a player")
 
 	return &Player{
-		Sounds:               sounds,
-		TagManager:           tagManager,
+		Library:              tagManager,
 		Analytics:            analytics,
 		Discord:              discord,
 		Guild:                guild,
@@ -208,14 +204,4 @@ func (p *Player) disconnect() {
 			"err":   err,
 		}).Warning("Disconnect from voice channel failed")
 	}
-}
-
-func (p *Player) FindSound(name string) *Sound {
-	for _, s := range *p.Sounds {
-		if s.Name == name {
-			return s
-		}
-	}
-
-	return nil
 }

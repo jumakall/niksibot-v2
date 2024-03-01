@@ -10,9 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -51,11 +49,8 @@ var (
 	// AnalyticsEndpoint is where analytics data is sent
 	AnalyticsEndpoint = ""
 
-	// Sounds is a list of all sound files
-	Sounds []*player.Sound
-
-	// TagManager manages tag and sound relations
-	TagManager *player.TagManager
+	// Library manages sound and tag information
+	Library *player.Library
 
 	// Analytics sends statistics to remote endpoint
 	Analytics *player.Analytics
@@ -81,60 +76,6 @@ func firstStart() {
 
 	log.Info(fmt.Sprintf("Greetings! %s is doing a bit of preparation work since it is started for the first time", BotName))
 	//createDB(DatabaseLocation)
-}
-
-func DiscoverSounds(path string) []*player.Sound {
-	log.WithFields(log.Fields{
-		"path": path,
-	}).Debug("Discovering sounds")
-
-	var sounds []*player.Sound
-
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		// return in case of error
-		if err != nil {
-			return err
-		}
-
-		// filter folders and files with wrong extension
-		if info.IsDir() || filepath.Ext(info.Name()) != SoundExtension {
-			return nil
-		}
-
-		path = strings.ReplaceAll(path, "\\", "/")
-		name := info.Name()[:len(info.Name())-len(filepath.Ext(info.Name()))]
-		trimmedPath := strings.TrimSuffix(path, info.Name())
-		trimmedPath = trimmedPath[:len(trimmedPath)-1]
-
-		// log found file
-		log.WithFields(log.Fields{
-			"name": name,
-			"file": info.Name(),
-			"path": trimmedPath,
-			"size": info.Size(),
-		}).Trace("Discovered sound")
-		sound := player.CreateSound(name, info.Name(), trimmedPath)
-		sounds = append(sounds, sound)
-
-		autotag := strings.TrimLeft(trimmedPath, SoundsDirectory)
-		autotag = autotag[1:]
-		TagManager.TagSound(autotag, sound)
-
-		return nil
-	})
-	if err != nil {
-		log.WithFields(log.Fields{
-			"path": path,
-			"err":  err,
-		}).Fatal("Sound discovery failed")
-	}
-
-	log.WithFields(log.Fields{
-		"path":  path,
-		"count": len(sounds),
-	}).Info("Sound discovery completed")
-
-	return sounds
 }
 
 func main() {
@@ -179,8 +120,8 @@ func main() {
 		"release":     Release,
 	}).Info(fmt.Sprintf("%s is starting", BotName))
 	rand.Seed(time.Now().Unix())
-	TagManager = player.CreateTagManager(&Sounds)
-	Sounds = DiscoverSounds(SoundsDirectory)
+	Library = player.CreateLibrary()
+	Library.Discover(SoundsDirectory, SoundExtension)
 	Registrations = commands.DiscoverRegistrations()
 	Commands = commands.DiscoverCommands()
 	Analytics = player.InitializeAnalytics(AnalyticsEndpoint)
@@ -191,7 +132,7 @@ func main() {
 	}
 
 	status := CreateStatus(Discord)
-	status.Messages = append(status.Messages, "with "+strconv.Itoa(len(Sounds))+" sounds")
+	status.Messages = append(status.Messages, "with "+strconv.Itoa(len(Library.Sounds))+" sounds")
 	if *CStatus != "" {
 		status.Messages = append(status.Messages, *CStatus)
 	}

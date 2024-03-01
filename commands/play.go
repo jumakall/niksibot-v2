@@ -44,7 +44,7 @@ func PlayTag(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Pla
 		return
 	}
 
-	soundInventory := p.TagManager.GetTag(tag)
+	soundInventory := p.Library.GetSoundByTag(tag)
 	if soundInventory == nil {
 		SendResponse(s, i, "Sorry, couldn't find anything")
 		return

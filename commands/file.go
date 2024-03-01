@@ -40,33 +40,8 @@ func fileCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player
 		return
 	}
 
-	foundFile := false
-	for _, sound := range *p.Sounds {
-		if sound.Name == file {
-			foundFile = true
-
-			voiceChannel := player.FindUsersVoiceChannel(s.State, guild, user)
-			if voiceChannel == nil {
-				log.WithFields(log.Fields{
-					"guild":  guild.Name,
-					"user":   user.Username,
-					"reason": "The user hasn't connected to a voice channel",
-				}).Warning("Unable to create a play")
-				SendResponse(s, i, ":telephone: Connect to a voice channel and try again")
-				return
-			}
-
-			play := player.CreatePlay(sound, user, voiceChannel, guild)
-			play.Forced = true
-			ps := player.CreatePlaySet([]*player.Play{play})
-			p.Playlist.Enqueue(ps)
-			p.StartPlayback()
-
-			SendResponse(s, i, ":loud_sound: "+sound.Name)
-		}
-	}
-
-	if !foundFile {
+	sound := p.Library.FindSoundByName(file)
+	if sound == nil {
 		log.WithFields(log.Fields{
 			"guild":  guild.Name,
 			"user":   user.Username,
@@ -74,4 +49,23 @@ func fileCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player
 		}).Warning("Unable to create a play")
 		SendResponse(s, i, "Couldn't find \""+file+"\" :interrobang:")
 	}
+
+	voiceChannel := player.FindUsersVoiceChannel(s.State, guild, user)
+	if voiceChannel == nil {
+		log.WithFields(log.Fields{
+			"guild":  guild.Name,
+			"user":   user.Username,
+			"reason": "The user hasn't connected to a voice channel",
+		}).Warning("Unable to create a play")
+		SendResponse(s, i, ":telephone: Connect to a voice channel and try again")
+		return
+	}
+
+	play := player.CreatePlay(sound, user, voiceChannel, guild)
+	play.Forced = true
+	ps := player.CreatePlaySet([]*player.Play{play})
+	p.Playlist.Enqueue(ps)
+	p.StartPlayback()
+
+	SendResponse(s, i, ":loud_sound: "+sound.Name)
 }

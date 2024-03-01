@@ -52,7 +52,7 @@ func rngCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.
 	}
 
 	var plays []*player.Play
-	for _, sound := range p.TagManager.GetTag(tag) {
+	for _, sound := range p.Library.GetSoundByTag(tag) {
 		plays = append(plays, player.CreatePlay(sound, user, voiceChannel, guild))
 	}
 
