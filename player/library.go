@@ -7,29 +7,42 @@ import (
 	"strings"
 )
 
+type Discovery struct {
+	Path      string
+	Extension string
+}
+
 type Library struct {
-	Folders []string
+	Folders []*Discovery
 	Sounds  []*Sound
 	Tags    map[string][]*Sound
 }
 
 func CreateLibrary() *Library {
 	return &Library{
-		Folders: []string{},
+		Folders: []*Discovery{},
 		Sounds:  []*Sound{},
 		Tags:    map[string][]*Sound{},
 	}
 }
 
 func (l *Library) Discover(path string, extension string) {
-	log.WithFields(log.Fields{
-		"path": path,
-	}).Debug("Discovering sounds")
+	l.Folders = append(l.Folders,
+		&Discovery{
+			Path:      path,
+			Extension: extension,
+		})
 
-	l.Folders = append(l.Folders, path)
+	l.discover(path, extension)
+}
+
+func (l *Library) discover(discoveryPath string, extension string) {
+	log.WithFields(log.Fields{
+		"path": discoveryPath,
+	}).Debug("Discovering sounds")
 	count := 0
 
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(discoveryPath, func(path string, info os.FileInfo, err error) error {
 		// return in case of error
 		if err != nil {
 			return err
@@ -55,7 +68,7 @@ func (l *Library) Discover(path string, extension string) {
 		sound := CreateSound(name, info.Name(), trimmedPath)
 		l.AddSound(sound)
 
-		autotag := strings.TrimLeft(path, trimmedPath)
+		autotag := strings.TrimLeft(trimmedPath, discoveryPath)
 		autotag = autotag[1:]
 		l.TagSound(autotag, sound)
 
@@ -64,15 +77,24 @@ func (l *Library) Discover(path string, extension string) {
 	})
 	if err != nil {
 		log.WithFields(log.Fields{
-			"path": path,
+			"path": discoveryPath,
 			"err":  err,
 		}).Fatal("Sound discovery failed")
 	}
 
 	log.WithFields(log.Fields{
-		"path":  path,
+		"path":  discoveryPath,
 		"count": count,
 	}).Info("Sound discovery completed")
+}
+
+func (l *Library) Rediscover() {
+	l.Sounds = []*Sound{}
+	l.Tags = map[string][]*Sound{}
+
+	for _, discovery := range l.Folders {
+		l.discover(discovery.Path, discovery.Extension)
+	}
 }
 
 func (l *Library) AddSound(s *Sound) {
