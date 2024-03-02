@@ -102,20 +102,21 @@ func (l *Library) AddSound(s *Sound) {
 }
 
 func (l *Library) TagSound(tag string, s *Sound) {
+	tag = strings.ToLower(tag)
 	l.Tags[tag] = append(l.Tags[tag], s)
 }
 
 func (l *Library) GetSoundByTag(tag string) []*Sound {
-	if tag == "all" {
+	if strings.ToLower(tag) == "all" {
 		return l.Sounds
 	}
 
-	return l.Tags[tag]
+	return l.Tags[strings.ToLower(tag)]
 }
 
 func (l *Library) FindSoundByName(name string) *Sound {
 	for _, s := range l.Sounds {
-		if s.Name == name {
+		if strings.ToLower(s.Name) == strings.ToLower(name) {
 			return s
 		}
 	}
@@ -125,7 +126,7 @@ func (l *Library) FindSoundByName(name string) *Sound {
 
 func (l *Library) SearchFile(query string) *[]*Sound {
 	// split query to search terms
-	var searchTerms = strings.Split(query, " ")
+	var searchTerms = strings.Split(strings.ToLower(query), " ")
 
 	// list for results
 	var results []*Sound
@@ -133,10 +134,11 @@ func (l *Library) SearchFile(query string) *[]*Sound {
 	// iterate all sounds
 	for _, s := range l.Sounds {
 		satisfy := true
+		soundName := strings.ToLower(s.Name)
 
 		// check if all search terms are satisfied
 		for _, q := range searchTerms {
-			if strings.Index(s.Name, q) == -1 {
+			if strings.Index(soundName, q) == -1 {
 				satisfy = false
 				break
 			}
