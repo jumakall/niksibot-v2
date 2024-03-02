@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/jumakall/niksibot-v2/player"
 	log "github.com/sirupsen/logrus"
+	"math/rand"
 )
 
 type File struct{}
@@ -41,13 +42,17 @@ func fileCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player
 	}
 
 	sound := p.Library.FindSoundByName(file)
+	fallbackUsed := false
 	if sound == nil {
-		log.WithFields(log.Fields{
-			"guild":  guild.Name,
-			"user":   user.Username,
-			"reason": "No matching file for the request",
-		}).Warning("Unable to create a play")
-		SendResponse(s, i, "Couldn't find \""+file+"\" :interrobang:")
+
+		sounds := *p.Library.SearchFile(file)
+		if len(sounds) == 0 {
+			SendResponse(s, i, "Couldn't find \""+file+"\" :interrobang:")
+			return
+		}
+
+		sound = sounds[rand.Intn(len(sounds))]
+		fallbackUsed = true
 	}
 
 	voiceChannel := player.FindUsersVoiceChannel(s.State, guild, user)
@@ -67,5 +72,9 @@ func fileCommand(s *discordgo.Session, i *discordgo.InteractionCreate, p *player
 	p.Playlist.Enqueue(ps)
 	p.StartPlayback()
 
-	SendResponse(s, i, ":loud_sound: "+sound.Name)
+	if fallbackUsed {
+		SendResponse(s, i, ":game_die: "+sound.Name)
+	} else {
+		SendResponse(s, i, ":loud_sound: "+sound.Name)
+	}
 }
