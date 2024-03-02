@@ -122,3 +122,31 @@ func (l *Library) FindSoundByName(name string) *Sound {
 
 	return nil
 }
+
+func (l *Library) SearchFile(query string) *[]*Sound {
+	// split query to search terms
+	var searchTerms = strings.Split(query, " ")
+
+	// list for results
+	var results []*Sound
+
+	// iterate all sounds
+	for _, s := range l.Sounds {
+		satisfy := true
+
+		// check if all search terms are satisfied
+		for _, q := range searchTerms {
+			if strings.Index(s.Name, q) == -1 {
+				satisfy = false
+				break
+			}
+		}
+
+		// if all search terms we satisfied, add to results
+		if satisfy {
+			results = append(results, s)
+		}
+	}
+
+	return &results
+}
