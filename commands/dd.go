@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/jumakall/niksibot-v2/player"
+	"math/rand"
 )
 
 type DD struct{}
@@ -26,5 +27,10 @@ func dd(s *discordgo.Session, i *discordgo.InteractionCreate, p *player.Player) 
 	p.Playlist.Clear()
 	p.Disconnect(i.Member.User)
 
-	SendResponse(s, i, "See you later :wave:")
+	if rand.Intn(10) == 0 {
+		SendResponse(s, i, ":middle_finger:")
+	} else {
+		SendResponse(s, i, ":japanese_goblin:")
+	}
+
 }
