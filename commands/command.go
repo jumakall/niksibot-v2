@@ -43,6 +43,11 @@ type Command interface {
 }
 
 func SendResponse(s *discordgo.Session, i *discordgo.InteractionCreate, msg string) {
+	const MESSAGE_MAX_LENGTH = 2000
+	if len(msg) > MESSAGE_MAX_LENGTH {
+		msg = msg[:MESSAGE_MAX_LENGTH-3] + "..."
+	}
+
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
