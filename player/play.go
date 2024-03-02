@@ -49,6 +49,7 @@ func (p *Play) PlayToVoiceChannel(vc *discordgo.VoiceConnection) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	// set speaking status
 	vc.Speaking(true)
