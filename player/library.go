@@ -69,8 +69,9 @@ func (l *Library) discover(discoveryPath string, extension string) {
 		l.AddSound(sound)
 
 		autotag := strings.TrimLeft(trimmedPath, discoveryPath)
-		autotag = autotag[1:]
-		l.TagSound(autotag, sound)
+		if autotag != "" {
+			l.TagSound(autotag[1:], sound)
+		}
 
 		count++
 		return nil
